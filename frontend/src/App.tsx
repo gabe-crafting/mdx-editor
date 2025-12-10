@@ -1,6 +1,7 @@
 import {useState} from 'react';
-import './App.css';
 import {OpenFile, SaveFile, SaveFileAs} from "../wailsjs/go/main/App";
+import {Button} from "@/components/ui/button";
+import {FolderOpen, Save, FileDown} from "lucide-react";
 
 function App() {
     const [content, setContent] = useState('');
@@ -47,23 +48,32 @@ function App() {
     };
 
     return (
-        <div id="App">
-            <div className="editor-container">
-                <div className="toolbar">
-                    <button className="btn" onClick={handleOpen}>Open</button>
-                    <button className="btn" onClick={handleSave}>Save</button>
-                    <button className="btn" onClick={handleSaveAs}>Save As</button>
-                    {currentFilePath && (
-                        <span className="file-path">{currentFilePath}</span>
-                    )}
-                </div>
-                <textarea
-                    className="editor-textarea"
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    placeholder="Start typing your MDX content here..."
-                />
+        <div className="h-screen flex flex-col bg-background">
+            <div className="flex items-center gap-2 p-3 border-b border-border bg-card">
+                <Button onClick={handleOpen} variant="outline" size="sm">
+                    <FolderOpen className="mr-2 h-4 w-4" />
+                    Open
+                </Button>
+                <Button onClick={handleSave} variant="outline" size="sm">
+                    <Save className="mr-2 h-4 w-4" />
+                    Save
+                </Button>
+                <Button onClick={handleSaveAs} variant="outline" size="sm">
+                    <FileDown className="mr-2 h-4 w-4" />
+                    Save As
+                </Button>
+                {currentFilePath && (
+                    <span className="ml-auto text-sm text-muted-foreground font-mono px-3 py-1.5 bg-muted rounded-md truncate max-w-md">
+                        {currentFilePath}
+                    </span>
+                )}
             </div>
+            <textarea
+                className="flex-1 w-full p-4 border-none outline-none bg-background text-foreground font-mono text-sm leading-relaxed resize-none focus:ring-0"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Start typing your MDX content here..."
+            />
         </div>
     )
 }
