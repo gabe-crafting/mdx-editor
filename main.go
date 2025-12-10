@@ -35,6 +35,14 @@ func main() {
 		runtime.Quit(app.ctx)
 	})
 
+	editMenu := appMenu.AddSubmenu("Edit")
+	editMenu.AddText("Undo", keys.CmdOrCtrl("Z"), func(cd *menu.CallbackData) {
+		runtime.EventsEmit(app.ctx, "menu:edit:undo")
+	})
+	editMenu.AddText("Redo", keys.CmdOrCtrl("Y"), func(cd *menu.CallbackData) {
+		runtime.EventsEmit(app.ctx, "menu:edit:redo")
+	})
+
 	// Create application with options
 	err := wails.Run(&options.App{
 		Title:  "mdxEditor",
