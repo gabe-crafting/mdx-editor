@@ -1,7 +1,8 @@
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import {OpenFile, SaveFile, SaveFileAs} from "../wailsjs/go/main/App";
 import {Button} from "@/components/ui/button";
 import {FolderOpen, Save, FileDown} from "lucide-react";
+import {EventsOn} from "../wailsjs/runtime/runtime";
 
 function App() {
     const [content, setContent] = useState('');
@@ -46,6 +47,18 @@ function App() {
             alert('Failed to save file: ' + error);
         }
     };
+
+    useEffect(() => {
+        const offOpen = EventsOn("menu:file:open", handleOpen);
+        const offSave = EventsOn("menu:file:save", handleSave);
+        const offSaveAs = EventsOn("menu:file:saveas", handleSaveAs);
+
+        return () => {
+            offOpen();
+            offSave();
+            offSaveAs();
+        };
+    }, [handleOpen, handleSave, handleSaveAs]);
 
     return (
         <div className="h-screen flex flex-col bg-background">
