@@ -43,6 +43,18 @@ func main() {
 		runtime.EventsEmit(app.ctx, "menu:edit:redo")
 	})
 
+	viewMenu := appMenu.AddSubmenu("View")
+	themesMenu := viewMenu.AddSubmenu("Themes")
+	themesMenu.AddText("Light", nil, func(cd *menu.CallbackData) {
+		runtime.EventsEmit(app.ctx, "menu:view:theme:light")
+	})
+	themesMenu.AddText("Dark", nil, func(cd *menu.CallbackData) {
+		runtime.EventsEmit(app.ctx, "menu:view:theme:dark")
+	})
+	themesMenu.AddText("Default", nil, func(cd *menu.CallbackData) {
+		runtime.EventsEmit(app.ctx, "menu:view:theme:default")
+	})
+
 	// Create application with options
 	err := wails.Run(&options.App{
 		Title:  "mdxEditor",

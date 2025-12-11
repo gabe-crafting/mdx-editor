@@ -1,13 +1,15 @@
 import {useRef, useState} from 'react';
 import {Button} from "@/components/ui/button";
-import {Bold, Heading1, Heading2, Heading3, Italic, Type, Link as LinkIcon} from "lucide-react";
+import {Bold, Heading1, Heading2, Heading3, Italic, Type, Link as LinkIcon, List, ListOrdered} from "lucide-react";
 import {useFileOperations} from "@/hooks/useFileOperations";
 import {useEditOperations} from "@/hooks/useEditOperations";
+import {useTheme} from "@/hooks/useTheme";
 import {Editor} from "@/components/Editor";
 import {Editor as TipTapEditor} from '@tiptap/react';
 import {LinkDialog} from "@/components/LinkDialog";
 
 function App() {
+    useTheme(); // Initialize theme system
     const [content, setContent] = useState('');
     const [, setUpdateKey] = useState(0);
     const [linkDialogOpen, setLinkDialogOpen] = useState(false);
@@ -30,7 +32,7 @@ function App() {
 
     useEditOperations(editorRef);
 
-    const applyFormatting = (format: 'p' | 'h1' | 'h2' | 'h3' | 'bold' | 'italic') => {
+    const applyFormatting = (format: 'p' | 'h1' | 'h2' | 'h3' | 'bold' | 'italic' | 'bulletList' | 'orderedList') => {
         const editor = editorRef.current;
         if (!editor) return;
 
@@ -53,10 +55,16 @@ function App() {
             case 'italic':
                 editor.chain().focus().toggleItalic().run();
                 break;
+            case 'bulletList':
+                editor.chain().focus().toggleBulletList().run();
+                break;
+            case 'orderedList':
+                editor.chain().focus().toggleOrderedList().run();
+                break;
         }
     };
 
-    const isActive = (format: 'p' | 'h1' | 'h2' | 'h3' | 'bold' | 'italic' | 'link') => {
+    const isActive = (format: 'p' | 'h1' | 'h2' | 'h3' | 'bold' | 'italic' | 'link' | 'bulletList' | 'orderedList') => {
         const editor = editorRef.current;
         if (!editor) return false;
 
@@ -75,6 +83,10 @@ function App() {
                 return editor.isActive('italic');
             case 'link':
                 return editor.isActive('link');
+            case 'bulletList':
+                return editor.isActive('bulletList');
+            case 'orderedList':
+                return editor.isActive('orderedList');
             default:
                 return false;
         }
@@ -94,9 +106,11 @@ function App() {
     };
 
 
+    const { theme } = useTheme();
+    
     return (
         <div className="h-screen flex flex-col bg-background">
-            <div className="flex items-center gap-3 p-3 border-b border-border bg-card">
+            <div className="flex items-center gap-3 p-3 border-b border-border bg-card text-card-foreground">
                 <div className="inline-flex items-center gap-1 rounded-md border border-border bg-muted/60 p-1">
                     <Button 
                         onClick={() => applyFormatting('p')} 
@@ -146,6 +160,20 @@ function App() {
                         size="icon"
                     >
                         <LinkIcon className="h-4 w-4"/>
+                    </Button>
+                    <Button 
+                        onClick={() => applyFormatting('bulletList')} 
+                        variant={isActive('bulletList') ? "secondary" : "ghost"} 
+                        size="icon"
+                    >
+                        <List className="h-4 w-4"/>
+                    </Button>
+                    <Button 
+                        onClick={() => applyFormatting('orderedList')} 
+                        variant={isActive('orderedList') ? "secondary" : "ghost"} 
+                        size="icon"
+                    >
+                        <ListOrdered className="h-4 w-4"/>
                     </Button>
                 </div>
                 <LinkDialog

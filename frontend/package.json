@@ -11,6 +11,11 @@
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-slot": "^1.2.4",
+    "@tiptap/extension-link": "^3.13.0",
+    "@tiptap/extension-placeholder": "^3.13.0",
+    "@tiptap/markdown": "^3.13.0",
+    "@tiptap/react": "^3.13.0",
+    "@tiptap/starter-kit": "^3.13.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.556.0",
@@ -21,8 +26,8 @@
   },
   "devDependencies": {
     "@types/node": "^24.10.2",
-    "@types/react": "^18.0.17",
-    "@types/react-dom": "^18.0.6",
+    "@types/react": "18.3.27",
+    "@types/react-dom": "18.3.7",
     "@vitejs/plugin-react": "^2.0.1",
     "autoprefixer": "^10.4.22",
     "postcss": "^8.5.6",
