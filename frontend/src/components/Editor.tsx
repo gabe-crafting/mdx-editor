@@ -61,6 +61,21 @@ export function Editor({ content, onChange, placeholder = 'Start typing your MDX
       attributes: {
         class: 'prose prose-invert prose-lg max-w-none focus:outline-none p-4 min-h-full prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-em:text-foreground prose-a:text-primary prose-a:no-underline hover:prose-a:underline',
       },
+      handleClick: (view, pos, event) => {
+        const target = event.target as HTMLElement;
+        const linkElement = target.closest('a');
+        
+        if (linkElement) {
+          const href = linkElement.getAttribute('href');
+          if (href && (href.startsWith('http://') || href.startsWith('https://'))) {
+            event.preventDefault();
+            event.stopPropagation();
+            BrowserOpenURL(href);
+            return true; // Indicates we handled it
+          }
+        }
+        return false; // Let TipTap handle it normally
+      },
     },
     onUpdate: ({ editor }) => {
       isInternalUpdate.current = true;
@@ -77,36 +92,6 @@ export function Editor({ content, onChange, placeholder = 'Start typing your MDX
     }
   }, [editor, onEditorReady]);
 
-  // Handle link clicks to open in default browser
-  useEffect(() => {
-    if (!editor) return;
-
-    const handleLinkClick = (event: Event) => {
-      const target = event.target as HTMLElement;
-      const linkElement = target.closest('a');
-      
-      if (linkElement) {
-        const href = linkElement.getAttribute('href');
-        if (href && href.startsWith('http')) {
-          event.preventDefault();
-          event.stopPropagation();
-          event.stopImmediatePropagation();
-          BrowserOpenURL(href);
-          return false;
-        }
-      }
-    };
-
-    const editorElement = editor.view.dom;
-    // Use capture phase and handle both click and mousedown
-    editorElement.addEventListener('click', handleLinkClick, true);
-    editorElement.addEventListener('mousedown', handleLinkClick, true);
-
-    return () => {
-      editorElement.removeEventListener('click', handleLinkClick, true);
-      editorElement.removeEventListener('mousedown', handleLinkClick, true);
-    };
-  }, [editor]);
 
   useEffect(() => {
     if (!editor || isInternalUpdate.current) {
