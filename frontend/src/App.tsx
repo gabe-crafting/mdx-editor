@@ -1,14 +1,16 @@
 import {useRef, useState} from 'react';
 import {Button} from "@/components/ui/button";
-import {Bold, Heading1, Heading2, Heading3, Italic, Type} from "lucide-react";
+import {Bold, Heading1, Heading2, Heading3, Italic, Type, Link as LinkIcon} from "lucide-react";
 import {useFileOperations} from "@/hooks/useFileOperations";
 import {useEditOperations} from "@/hooks/useEditOperations";
 import {Editor} from "@/components/Editor";
 import {Editor as TipTapEditor} from '@tiptap/react';
+import {LinkDialog} from "@/components/LinkDialog";
 
 function App() {
     const [content, setContent] = useState('');
     const [, setUpdateKey] = useState(0);
+    const [linkDialogOpen, setLinkDialogOpen] = useState(false);
     const editorRef = useRef<TipTapEditor | null>(null);
 
     const {
@@ -54,7 +56,7 @@ function App() {
         }
     };
 
-    const isActive = (format: 'p' | 'h1' | 'h2' | 'h3' | 'bold' | 'italic') => {
+    const isActive = (format: 'p' | 'h1' | 'h2' | 'h3' | 'bold' | 'italic' | 'link') => {
         const editor = editorRef.current;
         if (!editor) return false;
 
@@ -71,8 +73,23 @@ function App() {
                 return editor.isActive('bold');
             case 'italic':
                 return editor.isActive('italic');
+            case 'link':
+                return editor.isActive('link');
             default:
                 return false;
+        }
+    };
+
+    const handleLinkClick = () => {
+        const editor = editorRef.current;
+        if (!editor) return;
+
+        if (editor.isActive('link')) {
+            // If link is active, remove it
+            editor.chain().focus().unsetLink().run();
+        } else {
+            // Open dialog to add/edit link
+            setLinkDialogOpen(true);
         }
     };
 
@@ -123,7 +140,19 @@ function App() {
                     >
                         <Italic className="h-4 w-4"/>
                     </Button>
+                    <Button 
+                        onClick={handleLinkClick} 
+                        variant={isActive('link') ? "secondary" : "ghost"} 
+                        size="icon"
+                    >
+                        <LinkIcon className="h-4 w-4"/>
+                    </Button>
                 </div>
+                <LinkDialog
+                    open={linkDialogOpen}
+                    onOpenChange={setLinkDialogOpen}
+                    editor={editorRef.current}
+                />
                 {currentFilePath && (
                     <span className="ml-auto text-sm text-muted-foreground font-mono px-3 py-1.5 bg-muted rounded-md truncate max-w-md">
                         {currentFilePath}

@@ -5,6 +5,7 @@ import Placeholder from '@tiptap/extension-placeholder';
 import { useEffect, useRef } from 'react';
 import TurndownService from 'turndown';
 import MarkdownIt from 'markdown-it';
+import { BrowserOpenURL } from '../../wailsjs/runtime/runtime';
 
 interface EditorProps {
   content: string;
@@ -75,6 +76,37 @@ export function Editor({ content, onChange, placeholder = 'Start typing your MDX
       onEditorReady(editor);
     }
   }, [editor, onEditorReady]);
+
+  // Handle link clicks to open in default browser
+  useEffect(() => {
+    if (!editor) return;
+
+    const handleLinkClick = (event: Event) => {
+      const target = event.target as HTMLElement;
+      const linkElement = target.closest('a');
+      
+      if (linkElement) {
+        const href = linkElement.getAttribute('href');
+        if (href && href.startsWith('http')) {
+          event.preventDefault();
+          event.stopPropagation();
+          event.stopImmediatePropagation();
+          BrowserOpenURL(href);
+          return false;
+        }
+      }
+    };
+
+    const editorElement = editor.view.dom;
+    // Use capture phase and handle both click and mousedown
+    editorElement.addEventListener('click', handleLinkClick, true);
+    editorElement.addEventListener('mousedown', handleLinkClick, true);
+
+    return () => {
+      editorElement.removeEventListener('click', handleLinkClick, true);
+      editorElement.removeEventListener('mousedown', handleLinkClick, true);
+    };
+  }, [editor]);
 
   useEffect(() => {
     if (!editor || isInternalUpdate.current) {
