@@ -1,20 +1,19 @@
 import {useCallback, useEffect, RefObject} from 'react';
 import {EventsOn} from "../../wailsjs/runtime/runtime";
+import {Editor as TipTapEditor} from '@tiptap/react';
 
-export function useEditOperations(textareaRef: RefObject<HTMLTextAreaElement>) {
+export function useEditOperations(editorRef: RefObject<TipTapEditor | null>) {
     const handleUndo = useCallback(() => {
-        const textarea = textareaRef.current;
-        if (!textarea) return;
-        textarea.focus();
-        document.execCommand('undo', false);
-    }, []);
+        const editor = editorRef.current;
+        if (!editor) return;
+        editor.chain().focus().undo().run();
+    }, [editorRef]);
 
     const handleRedo = useCallback(() => {
-        const textarea = textareaRef.current;
-        if (!textarea) return;
-        textarea.focus();
-        document.execCommand('redo', false);
-    }, []);
+        const editor = editorRef.current;
+        if (!editor) return;
+        editor.chain().focus().redo().run();
+    }, [editorRef]);
 
     useEffect(() => {
         const offUndo = EventsOn("menu:edit:undo", handleUndo);
