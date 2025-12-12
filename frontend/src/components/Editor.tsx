@@ -11,6 +11,7 @@ interface EditorProps {
   onChange: (content: string) => void;
   placeholder?: string;
   onEditorReady?: (editor: TipTapEditor) => void;
+  key?: string | number; // Add key prop to force remount when file changes
 }
 
 export type { TipTapEditor };

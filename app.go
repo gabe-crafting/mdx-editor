@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"os"
+	"path/filepath"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -16,6 +18,12 @@ type App struct {
 type OpenFileResult struct {
 	FilePath string `json:"filePath"`
 	Content  string `json:"content"`
+}
+
+// FileHistoryItem represents a file in the history
+type FileHistoryItem struct {
+	FilePath  string `json:"filePath"`
+	Timestamp int64  `json:"timestamp"`
 }
 
 // NewApp creates a new App application struct
@@ -106,4 +114,67 @@ func (a *App) SaveFileAs(content string) (string, error) {
 	}
 
 	return filePath, nil
+}
+
+// ReadFile reads a file from the given path and returns its content
+func (a *App) ReadFile(filePath string) (string, error) {
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		return "", err
+	}
+	return string(content), nil
+}
+
+// getHistoryFilePath returns the path to the file history storage file
+func (a *App) getHistoryFilePath() (string, error) {
+	configDir, err := os.UserConfigDir()
+	if err != nil {
+		return "", err
+	}
+
+	appDir := filepath.Join(configDir, "mdxEditor")
+	// Create directory if it doesn't exist
+	if err := os.MkdirAll(appDir, 0755); err != nil {
+		return "", err
+	}
+
+	return filepath.Join(appDir, "file-history.json"), nil
+}
+
+// LoadFileHistory loads the file history from disk
+func (a *App) LoadFileHistory() ([]FileHistoryItem, error) {
+	historyPath, err := a.getHistoryFilePath()
+	if err != nil {
+		return []FileHistoryItem{}, nil // Return empty history if we can't get path
+	}
+
+	data, err := os.ReadFile(historyPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return []FileHistoryItem{}, nil // File doesn't exist yet, return empty history
+		}
+		return nil, err
+	}
+
+	var history []FileHistoryItem
+	if err := json.Unmarshal(data, &history); err != nil {
+		return []FileHistoryItem{}, nil // If JSON is invalid, return empty history
+	}
+
+	return history, nil
+}
+
+// SaveFileHistory saves the file history to disk
+func (a *App) SaveFileHistory(history []FileHistoryItem) error {
+	historyPath, err := a.getHistoryFilePath()
+	if err != nil {
+		return err
+	}
+
+	data, err := json.MarshalIndent(history, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(historyPath, data, 0644)
 }

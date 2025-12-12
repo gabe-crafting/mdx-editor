@@ -2,11 +2,15 @@ import {useRef, useState} from 'react';
 import {Button} from "@/components/ui/button";
 import {Bold, Heading1, Heading2, Heading3, Italic, Type, Link as LinkIcon, List, ListOrdered} from "lucide-react";
 import {useFileOperations} from "@/hooks/useFileOperations";
+import {ReadFile} from "../wailsjs/go/main/App";
 import {useEditOperations} from "@/hooks/useEditOperations";
 import {useTheme} from "@/hooks/useTheme";
+import {useFileHistory} from "@/hooks/useFileHistory";
 import {Editor} from "@/components/Editor";
 import {Editor as TipTapEditor} from '@tiptap/react';
 import {LinkDialog} from "@/components/LinkDialog";
+import {SidebarProvider, SidebarTrigger, SidebarInset} from "@/components/ui/sidebar";
+import {FileHistorySidebar} from "@/components/FileHistorySidebar";
 
 function App() {
     useTheme(); // Initialize theme system
@@ -16,8 +20,23 @@ function App() {
     const editorRef = useRef<TipTapEditor | null>(null);
 
     const {
+        fileHistory,
+        currentFileIndex,
+        addToHistory,
+        switchToFile,
+        removeFromHistory,
+    } = useFileHistory();
+
+    const {
         currentFilePath,
-    } = useFileOperations(content, setContent);
+        setCurrentFilePath,
+    } = useFileOperations(
+        content,
+        setContent,
+        (filePath) => {
+            addToHistory(filePath);
+        }
+    );
 
     const handleEditorReady = (editor: TipTapEditor) => {
         editorRef.current = editor;
@@ -105,13 +124,57 @@ function App() {
         }
     };
 
+    const handleFileSelect = async (index: number) => {
+        // Get the file item from current history state
+        if (index >= 0 && index < fileHistory.length) {
+            const fileItem = fileHistory[index];
+            // Update index first
+            switchToFile(index);
+            
+            try {
+                // Load content from disk
+                const fileContent = await ReadFile(fileItem.filePath);
+                // Update both content and file path together
+                setCurrentFilePath(fileItem.filePath);
+                setContent(fileContent);
+            } catch (error) {
+                console.error('Error loading file:', error);
+                alert('Failed to load file: ' + fileItem.filePath + '\n' + error);
+                // Remove from history if file doesn't exist
+                removeFromHistory(index);
+            }
+        }
+    };
 
-    const { theme } = useTheme();
+    const handleFileRemove = (index: number) => {
+        removeFromHistory(index);
+        // If removing current file, switch to previous or clear
+        if (index === currentFileIndex) {
+            const newIndex = index > 0 ? index - 1 : (fileHistory.length > 1 ? 0 : -1);
+            if (newIndex >= 0) {
+                handleFileSelect(newIndex);
+            } else {
+                setContent('');
+                setCurrentFilePath(null);
+            }
+        }
+    };
+
+    useTheme();
     
     return (
-        <div className="h-screen flex flex-col bg-background">
-            <div className="flex items-center gap-3 p-3 border-b border-border bg-card text-card-foreground">
-                <div className="inline-flex items-center gap-1 rounded-md border border-border bg-muted/60 p-1">
+        <SidebarProvider defaultOpen={false}>
+            <FileHistorySidebar
+                fileHistory={fileHistory}
+                currentFileIndex={currentFileIndex}
+                onFileSelect={handleFileSelect}
+                onFileRemove={handleFileRemove}
+            />
+            <SidebarInset>
+                <div className="h-screen flex flex-col bg-background">
+                    <div className="flex items-center gap-3 p-3 border-b border-border bg-card text-card-foreground">
+                        <SidebarTrigger />
+                        <div className="inline-flex items-center gap-1 rounded-md border border-border bg-muted/60 p-1">
                     <Button 
                         onClick={() => applyFormatting('p')} 
                         variant={isActive('p') ? "secondary" : "ghost"} 
@@ -186,14 +249,17 @@ function App() {
                         {currentFilePath}
                     </span>
                 )}
-            </div>
-            <Editor
-                content={content}
-                onChange={setContent}
-                onEditorReady={handleEditorReady}
-                placeholder="Start typing your MDX content here..."
-            />
-        </div>
+                    </div>
+                    <Editor
+                        key={currentFilePath || 'new-file'}
+                        content={content}
+                        onChange={setContent}
+                        onEditorReady={handleEditorReady}
+                        placeholder="Start typing your MDX content here..."
+                    />
+                </div>
+            </SidebarInset>
+        </SidebarProvider>
     )
 }
 

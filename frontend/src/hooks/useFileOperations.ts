@@ -4,7 +4,8 @@ import {EventsOn} from "../../wailsjs/runtime/runtime";
 
 export function useFileOperations(
     content: string,
-    setContent: (content: string | ((prev: string) => string)) => void
+    setContent: (content: string | ((prev: string) => string)) => void,
+    onFileOpened?: (filePath: string) => void
 ) {
     const [currentFilePath, setCurrentFilePath] = useState<string | null>(null);
 
@@ -14,25 +15,27 @@ export function useFileOperations(
             if (result.filePath && result.content !== undefined) {
                 setCurrentFilePath(result.filePath);
                 setContent(result.content);
+                onFileOpened?.(result.filePath);
             }
         } catch (error) {
             console.error('Error opening file:', error);
             alert('Failed to open file: ' + error);
         }
-    }, [setContent]);
+    }, [setContent, onFileOpened]);
 
     const handleSaveAs = useCallback(async () => {
         try {
             const filePath = await SaveFileAs(content);
             if (filePath) {
                 setCurrentFilePath(filePath);
+                onFileOpened?.(filePath);
                 alert('File saved successfully!');
             }
         } catch (error) {
             console.error('Error saving file:', error);
             alert('Failed to save file: ' + error);
         }
-    }, [content]);
+    }, [content, onFileOpened]);
 
     const handleSave = useCallback(async () => {
         if (!currentFilePath) {
