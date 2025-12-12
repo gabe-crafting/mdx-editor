@@ -1,17 +1,14 @@
-import { FileText, X } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarMenuAction,
+  SidebarGroupLabel,
 } from "@/components/ui/sidebar";
+import { Accordion } from "@/components/ui/accordion";
 import { FileHistoryItem } from "@/hooks/useFileHistory";
+import { HistoryAccordion } from "@/components/HistoryAccordion";
 
 interface FileHistorySidebarProps {
   fileHistory: FileHistoryItem[];
@@ -26,49 +23,23 @@ export function FileHistorySidebar({
   onFileSelect,
   onFileRemove,
 }: FileHistorySidebarProps) {
-  const getFileName = (filePath: string) => {
-    return filePath.split(/[/\\]/).pop() || filePath;
-  };
-
   return (
     <Sidebar collapsible="offcanvas" side="left">
       <SidebarHeader>
-        <SidebarGroupLabel>File History</SidebarGroupLabel>
+        <SidebarGroupLabel>Features</SidebarGroupLabel>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu>
-              {fileHistory.length === 0 ? (
-                <SidebarMenuItem>
-                  <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                    No files opened yet
-                  </div>
-                </SidebarMenuItem>
-              ) : (
-                fileHistory.map((item, index) => (
-                  <SidebarMenuItem key={`${item.filePath}-${item.timestamp}`}>
-                    <SidebarMenuButton
-                      isActive={index === currentFileIndex}
-                      onClick={() => onFileSelect(index)}
-                      tooltip={item.filePath}
-                    >
-                      <FileText />
-                      <span className="truncate">{getFileName(item.filePath)}</span>
-                    </SidebarMenuButton>
-                    <SidebarMenuAction
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onFileRemove(index);
-                      }}
-                      showOnHover
-                    >
-                      <X />
-                    </SidebarMenuAction>
-                  </SidebarMenuItem>
-                ))
-              )}
-            </SidebarMenu>
+            <Accordion type="multiple" defaultValue={["history"]} className="w-full">
+              <HistoryAccordion
+                fileHistory={fileHistory}
+                currentFileIndex={currentFileIndex}
+                onFileSelect={onFileSelect}
+                onFileRemove={onFileRemove}
+              />
+              {/* Future feature accordions can be added here */}
+            </Accordion>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
